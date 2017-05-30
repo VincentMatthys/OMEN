@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
-
 
 def extract_radiation_value(fichier):
 	"""

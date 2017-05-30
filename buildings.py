@@ -1,7 +1,6 @@
+# -*- coding: utf-8 -*-
+
 import overpass
-
-api = overpass.API()
-
 
 def get_buildings(response):
 	"""
@@ -33,6 +32,7 @@ def get_positions(features):
 
 	return positions
 
+
 """
 # Query by name
 response = api.Get('node["name"="Salt Lake City"]')
@@ -41,11 +41,13 @@ print ([(feature['properties']['name'], feature['id']) for feature in response['
 
 """
 
-# Query by map
-map_query = overpass.MapQuery(50.746,7.154,50.748,7.157)
-# Get the response from the API
-response = api.Get(map_query)
-# Get every buildings from this reponse
-buildings = get_buildings(response)
-# Get the positions of every buildings
-pos = get_positions(buildings)
+if __name__ == '__main__':
+	api = overpass.API()
+	# Query by map
+	map_query = overpass.MapQuery(50.746,7.154,50.748,7.157)
+	# Get the response from the API
+	response = api.Get(map_query)
+	# Get every buildings from this reponse
+	buildings = get_buildings(response)
+	# Get the positions of every buildings
+	pos = get_positions(buildings)
