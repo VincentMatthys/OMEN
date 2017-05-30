@@ -15,6 +15,8 @@ def plot_buildings(positions):
 		plt.plot(temp[:, 0], temp[:, 1], c = 'b')
 	plt.show
 
+def plot_antennas()
+
 if __name__ == '__main__':
 	api = overpass.API()
 	# Query by map
