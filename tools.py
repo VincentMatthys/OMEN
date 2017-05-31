@@ -306,17 +306,17 @@ def E_bat_antenna(disc, antenna, att_h, att_v):
 	distance = np.linalg.norm(disc - A, axis = 1)
 
 	# Azimut vector of antenna
-	Az = np.array([np.sin(antenna['Azimuth'] * math.pi / 360), np.cos(antenna['Azimuth'] * math.pi / 360)])
+	Az = np.array([np.sin(antenna['Azimuth'] * math.pi / 180), np.cos(antenna['Azimuth'] * math.pi / 180)])
 
 	# Horizontal attenuation
-	hor = np.arccos(np.dot((disc - A) / distance.reshape(-1, 1), Az)) * 360 / math.pi
-	#return hor
+	hor = np.arccos(np.dot((disc - A) / distance.reshape(-1, 1), Az)) * 180 / math.pi
+
 	# Conversion of the azimuth = 0 as extracted in att_h and att_v
 	# PLUS transforming dictionary into array for accession
 	Att_h = np.vstack((np.array(list(att_h.values()))[int(antenna['Azimuth']):].reshape(-1, 1), np.array(list(att_h.values()))[:int(antenna['Azimuth'])].reshape(-1, 1)))[np.rint(hor).astype(int) % 360]
 
 	# Electric field evaluated for every point on the discretized facade :
-	return np.sqrt(antenna['ERP(W)'] / np.exp(Attenuation / 10 * np.log(10))) * 7 / distance
+	return np.sqrt(antenna['ERP(W)'] / np.exp(Att_h / 10 * np.log(10))) * 7 / distance.reshape(-1, 1)
 
 def OMEN_bat(bat, antennas, att_h, att_v):
 	"""
@@ -331,7 +331,7 @@ def OMEN_bat(bat, antennas, att_h, att_v):
 	E_facade = np.zeros((len(disc), 1))
 
 	for a in antennas :
-		E_facade[:, 0] += np.power(E_bat_antenna(disc, a, att_h, att_v), 2)
+		E_facade += np.power(E_bat_antenna(disc, a, att_h, att_v), 2)
 
 	E_facade = np.sqrt(E_facade)
 
