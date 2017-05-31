@@ -3,9 +3,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import overpass
-from tools import convert_metter_to_longitude
 
-import sys
 
 def plot_buildings(positions):
 	"""

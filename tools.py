@@ -5,8 +5,8 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-from buildings import *
-from map import *
+#from buildings import *
+#from map import *
 import overpass
 
 def get_buildings(response):
@@ -26,19 +26,22 @@ def get_buildings(response):
 
 def get_positions(features):
 	"""
-	Given a list of features, return the list of positions
+	Given a list of features, return a dictionary of positions :
+		- StreetMap id of the building : np.array(pos)
+	Input format, with the actual dictionary :
+		- get_positions(sites['site_name']['buildings'])
 	"""
 
-	# List of positions
-	positions = []
+	# dictionary of positions
+	positions = {}
 
 	# For every element in the features
 	for element in features:
 		# Append the list of coordinates
-		positions.append(element['geometry']['coordinates'])
+		positions[element["id"]] = np.array(element['geometry']['coordinates'])
 
 	return positions
-	
+
 def plot_buildings(positions):
 	"""
 	Given the list of positions of buildings (polygons), plot them
@@ -169,7 +172,7 @@ def area_per_site(site, factor = 2):
 	return y - delta_y, x - delta_x, y + delta_y, x + delta_x
 
 
-def call_api_mapQuery(site, api):
+def call_api_mapQuery(site, api, sites):
 	"""
 	Give the buildings of an area as defined by the area_per_site function
 	Entry : take the sites dictionary
@@ -189,6 +192,38 @@ def call_api_mapQuery(site, api):
 
 	return buildings
 
+def map_to_antenna(sites, site_name):
+	"""
+	Given the sites dictionary and a site_name, returns a dictionary as following :
+		- Position of the site (LON, LAT)
+		- Relative positions of the antennas
+		- Relative positions of the buildings
+	"""
+
+	relative = {}
+   
+	# Position of the site
+	x_site = sites[site_name]['LON']
+	y_site = sites[site_name]['LAT']
+	relative[site_name] = {'LAT' : y_site, 'LON' : x_site}
+
+	# Relative position of the antemma
+	relative['Antennes'] = sites[site_name]['Antennes']
+
+	# Relative positions of the buildings
+	pos_buildings = get_positions(sites[site_name]['buildings'])
+
+	for building in pos_buildings:
+		pos_buildings[building] -= (x_site, y_site)
+
+	relative['buildings'] = pos_buildings
+
+	return relative
+
+################################################################################
+############################### MAIN ###########################################
+################################################################################
+
 if __name__ == '__main__':
 	# Prefix for data storage
 	prefix = "data/"
@@ -199,11 +234,12 @@ if __name__ == '__main__':
 	# Extension suffix for site antenna
 	suffix = "_Antennes.csv"
 
-
 	sites = get_features(prefix, coord_sites_file, suffix)
 
 	api = overpass.API()
 	for site in sites:
+		print ("J'ai tourné")
 		sites[site]['buildings'] = call_api_mapQuery(site, api)
 
-	plot_map(sites['GE_0002A'])
+
+	#plot_map(sites['GE_0002A'])
