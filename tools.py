@@ -206,7 +206,7 @@ def map_to_antenna(sites, site_name):
     # Position of the site
     x_site = sites[site_name]['LON']
     y_site = sites[site_name]['LAT']
-    relative[site_name] = {'LAT' : y_site, 'LON' : x_site}
+    relative['Site'] = {'Name' : site_name, 'LAT' : y_site, 'LON' : x_site}
 
     # Relative position of the antemma
     relative['Antennes'] = sites[site_name]['Antennes']
@@ -270,13 +270,85 @@ def extract_radiation_value(fichier):
             values[cur][float(split[0])] = float(split[1])
         # Go to the next ligne
         ligne = f.readline()
-    return values[0], values[1]
+    return (values[0], values[1])
 
-def OMEN_bat(bat):
+def discretize(bat, step):
 	"""
-	Given a polygon representing a building, find the OMEN for this building
+	Given a numpy array of the bat represented by a polygon
+	Returns a numpy array of coordinates in facade
 	"""
 
+	# List of pnew positions
+	p = []
+
+	p.append(bat[0])
+
+	for k in range(1, len(bat)):
+		if k == 0:
+			p.append(bat[k])
+		else :
+			p2 = bat[k]
+			p1 = bat[k - 1]
+			for i in range(step):
+				p.append(p1 + (p2 - p1) * i/step)
+
+	p.append(bat[0])
+	return np.array(p)
+
+def E_bat_antenna(disc, antenna, att_h, att_v):
+	"""
+	Given a discretisation representing a building, find the OMEN for this building for every antenna
+	"""
+	# Position of the antenna
+	A = np.array([antenna['X'], antenna['Y']])
+
+	# Matrix distance discretized building - antenna
+	distance = np.linalg.norm(disc - A, axis = 1)
+
+	# Azimut vector of antenna
+	Az = np.array([np.sin(antenna['Azimuth'] * math.pi / 360), np.cos(antenna['Azimuth'] * math.pi / 360)])
+
+	# Horizontal attenuation
+	hor = np.arccos(np.dot((disc - A) / distance.reshape(-1, 1), Az)) * 360 / math.pi
+	#return hor
+	# Conversion of the azimuth = 0 as extracted in att_h and att_v
+	# PLUS transforming dictionary into array for accession
+	Att_h = np.vstack((np.array(list(att_h.values()))[int(antenna['Azimuth']):].reshape(-1, 1), np.array(list(att_h.values()))[:int(antenna['Azimuth'])].reshape(-1, 1)))[np.rint(hor).astype(int) % 360]
+
+	# Electric field evaluated for every point on the discretized facade :
+	return np.sqrt(antenna['ERP(W)'] / np.exp(Attenuation / 10 * np.log(10))) * 7 / distance
+
+def OMEN_bat(bat, antennas, att_h, att_v):
+	"""
+	Find the OMEN for a given building considering every antennas
+	Return the E_OMEN per building
+	"""
+
+	# Discretisation of the building 10 points by facade
+	disc = discretize(bat, 10)
+
+	# Electrical field resulting
+	E_facade = np.zeros((len(disc), 1))
+
+	for a in antennas :
+		E_facade[:, 0] += np.power(E_bat_antenna(disc, a, att_h, att_v), 2)
+
+	E_facade = np.sqrt(E_facade)
+
+	return (disc[E_facade.argmax()], E_facade.max())
+
+def OMEN_per_site(mapped, att_h, att_v):
+	"""
+	Given a dictionary as returned by the map_to_antenna function
+	"""
+
+	# Dictionary of OMEN per building
+	OMEN = {}
+
+	for building in mapped['buildings']:
+		OMEN[building] = OMEN_bat(mapped['buildings'][building], mapped['Antennes'], att_h, att_v)
+
+	return OMEN
 ################################################################################
 ############################### MAIN ###########################################
 ################################################################################
