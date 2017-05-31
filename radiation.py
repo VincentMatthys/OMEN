@@ -39,7 +39,7 @@ def extract_radiation_value(fichier):
 			if split[0] == 'HORIZONTAL':
 				cur = 0
 			else:
-				cur = 0
+				cur = 1
 			size = int(split[1])
 			ligne = f.readline()
 			split = ligne.split()

@@ -260,7 +260,7 @@ def extract_radiation_value(fichier):
             if split[0] == 'HORIZONTAL':
                 cur = 0
             else:
-                cur = 0
+                cur = 1
             size = int(split[1])
             ligne = f.readline()
             split = ligne.split()
@@ -272,33 +272,10 @@ def extract_radiation_value(fichier):
         ligne = f.readline()
     return values[0], values[1]
 
-def discretize(bat, step):
+def OMEN_bat(bat):
 	"""
-	Given a numpy array of the bat represented by a polygon
-	Returns a numpy array of coordinates in facade
+	Given a polygon representing a building, find the OMEN for this building
 	"""
-
-	# List of pnew positions
-	p = []
-
-	p.append(bat[0])
-
-	for k in range(1, len(bat)):
-		if k == 0:
-			p.append(bat[k])
-		else :
-			p2 = bat[k]
-			p1 = bat[k - 1]
-			for i in range(step):
-				p.append(p1 + (p2 - p1) * i/step)
-
-	p.append(bat[0])
-	return np.array(p)
-
-def plot_bat(bat):
-	plt.figure(figsize = (20, 15))
-	plt.plot(bat[:, 0], bat[:, 1], '-o')
-	plt.show()
 
 ################################################################################
 ############################### MAIN ###########################################
