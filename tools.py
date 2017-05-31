@@ -216,7 +216,7 @@ def map_to_antenna(sites, site_name):
 
     for building in pos_buildings:
         pos_buildings[building] -= (x_site, y_site)
-        pos_buildings[building] = pos_buildings[building] * (40075160 / 360)
+        pos_buildings[building] *= (40075160 / 360)
 
     relative['buildings'] = pos_buildings
 
@@ -349,6 +349,8 @@ def OMEN_per_site(mapped, att_h, att_v):
 		OMEN[building] = OMEN_bat(mapped['buildings'][building], mapped['Antennes'], att_h, att_v)
 
 	return OMEN
+
+
 ################################################################################
 ############################### MAIN ###########################################
 ################################################################################
